@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Braze Redirect Path Generator</title>
+<style>
+  :root {
+    --bg: #FAFAF7;
+    --surface: #FFFFFF;
+    --surface-2: #F1EFE8;
+    --border: #E5E3DC;
+    --border-strong: #D3D1C7;
+    --text: #1F1F1D;
+    --text-secondary: #5F5E5A;
+    --text-tertiary: #888780;
+    --accent: #363DA5;
+    --accent-hover: #2A2F85;
+    --warning: #BA7517;
+    --radius-sm: 6px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --font-sans: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-mono: ui-monospace, 'SF Mono', Menlo, Monaco, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-sans);
+    font-size: 15px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  .page-wrap {
+    max-width: 820px;
+    margin: 0 auto;
+    padding: 48px 24px 80px;
+  }
+  header {
+    margin-bottom: 32px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border);
+  }
+  .logo-wrap {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .logo-wrap img {
+    height: 32px;
+    width: auto;
+    display: block;
+  }
+  .tagline {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: #F09100;
+    padding-left: 12px;
+    border-left: 1px solid var(--border);
+    line-height: 1.4;
+  }
+  h1 {
+    font-size: 28px;
+    font-weight: 500;
+    margin: 0 0 6px;
+    letter-spacing: -0.01em;
+  }
+  .subtitle {
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin: 0;
+  }
+  h2 {
+    font-size: 16px;
+    font-weight: 500;
+    margin: 0 0 12px;
+  }
+  .link-row {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 16px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr) auto;
+    gap: 12px;
+    align-items: start;
+    margin-bottom: 12px;
+  }
+  @media (max-width: 640px) {
+    .link-row { grid-template-columns: 1fr; }
+    .remove-row { justify-self: end; margin-top: 0 !important; }
+  }
+  label {
+    display: block;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    margin-bottom: 6px;
+    letter-spacing: 0.01em;
+  }
+  input[type="text"] {
+    width: 100%;
+    height: 38px;
+    padding: 0 12px;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-md);
+    background: var(--surface);
+    color: var(--text);
+    font-family: var(--font-sans);
+    font-size: 14px;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  input[type="text"]:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(54, 61, 165, 0.12);
+  }
+  .preview {
+    margin: 6px 0 0;
+    font-size: 11px;
+    color: var(--text-tertiary);
+    font-family: var(--font-mono);
+    word-break: break-all;
+    min-height: 14px;
+  }
+  button {
+    font-family: var(--font-sans);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    border-radius: var(--radius-md);
+    transition: background 0.15s, border-color 0.15s, transform 0.05s;
+  }
+  button:active { transform: scale(0.98); }
+  .btn-secondary {
+    background: var(--surface);
+    border: 1px solid var(--border-strong);
+    color: var(--text);
+    padding: 8px 14px;
+    height: 38px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .btn-secondary:hover { background: var(--surface-2); border-color: var(--text-tertiary); }
+  .btn-primary {
+    background: var(--accent);
+    border: 1px solid var(--accent);
+    color: white;
+    padding: 8px 16px;
+    height: 38px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .btn-primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+  .remove-row {
+    width: 38px;
+    height: 38px;
+    padding: 0;
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-tertiary);
+    margin-top: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .remove-row:hover { background: var(--surface-2); color: var(--text); border-color: var(--border-strong); }
+  .add-row-btn {
+    margin-bottom: 32px;
+  }
+  .output-section { margin-top: 36px; }
+  .output-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  .copy-btn {
+    background: var(--surface);
+    border: 1px solid var(--border-strong);
+    color: var(--text);
+    padding: 6px 12px;
+    font-size: 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    height: auto;
+  }
+  .copy-btn:hover { background: var(--surface-2); }
+  .copy-btn.copied { background: var(--accent); color: white; border-color: var(--accent); }
+  pre {
+    background: #2C2C2A;
+    color: #F1EFE8;
+    border-radius: var(--radius-lg);
+    padding: 18px 20px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    word-break: break-all;
+    margin: 0;
+    min-height: 80px;
+    overflow-x: auto;
+  }
+  pre.empty {
+    background: var(--surface);
+    color: var(--text-tertiary);
+    border: 1px dashed var(--border-strong);
+    font-style: italic;
+  }
+  .summary {
+    margin: 12px 0 0;
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+  .summary code {
+    font-family: var(--font-mono);
+    background: var(--surface-2);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 12px;
+    color: var(--text);
+  }
+  .help-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 18px 20px;
+    margin-top: 40px;
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.7;
+  }
+  .help-box h3 {
+    font-size: 13px;
+    font-weight: 500;
+    margin: 0 0 8px;
+    color: var(--text);
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+  }
+  .help-box code {
+    font-family: var(--font-mono);
+    background: var(--surface-2);
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-size: 12px;
+    color: var(--text);
+  }
+  .icon {
+    width: 14px;
+    height: 14px;
+    stroke: currentColor;
+    stroke-width: 2;
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  footer {
+    margin-top: 60px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+    font-size: 12px;
+    color: var(--text-tertiary);
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<div class="page-wrap">
+
+<header>
+  <div class="logo-wrap">
+    <img src="https://assets.themednet.org/images/mednet_logo_200.png" alt="Mednet" />
+    <span class="tagline">Internal tool</span>
+  </div>
+  <h1>Braze redirect path generator</h1>
+  <p class="subtitle">Paste full URLs, name your variables, copy the Liquid block into your HTML content block.</p>
+</header>
+
+<h2>Links</h2>
+<div id="rows-container"></div>
+
+<button class="btn-secondary add-row-btn" id="add-row" type="button">
+  <svg class="icon" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+  Add another link
+</button>
+
+<div class="output-section">
+  <div class="output-header">
+    <h2 style="margin: 0;">Output</h2>
+    <button class="copy-btn" id="copy-output" type="button">
+      <svg class="icon" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+      <span id="copy-label">Copy</span>
+    </button>
+  </div>
+  <pre id="output"></pre>
+  <p class="summary" id="vars-summary"></p>
+</div>
+
+<div class="help-box">
+  <h3>How to use</h3>
+  <ol style="margin: 0; padding-left: 18px;">
+    <li>Paste any full URL (e.g. <code>https://www.themednet.org/v2/ai?utm_...</code>) — the domain auto-strips.</li>
+    <li>Name your variable (e.g. <code>mednet_ai_url</code>).</li>
+    <li>Copy the output and paste it at the top of your HTML content block in Braze.</li>
+    <li>Reference each variable in your body as <code>{{variable_name}}</code> inside an <code>&lt;a href&gt;</code> tag.</li>
+  </ol>
+</div>
+
+<footer>Built for Mednet email campaigns</footer>
+
+</div>
+
+<script>
+(function() {
+  const container = document.getElementById('rows-container');
+  const output = document.getElementById('output');
+  const summary = document.getElementById('vars-summary');
+
+  function slugify(s) {
+    return (s || '').toLowerCase().replace(/[^a-z0-9_]+/g, '_').replace(/^_+|_+$/g, '');
+  }
+
+  function stripDomain(url) {
+    if (!url) return '';
+    let u = url.trim();
+    u = u.replace(/^https?:\/\//i, '');
+    u = u.replace(/^([a-z0-9.-]+\.[a-z]{2,})(?::\d+)?/i, '');
+    if (!u.startsWith('/') && !u.startsWith('?') && !u.startsWith('#')) {
+      if (u.length > 0) u = '/' + u;
+    }
+    return u;
+  }
+
+  function makeRow(defaults) {
+    defaults = defaults || {};
+    const row = document.createElement('div');
+    row.className = 'link-row';
+    row.innerHTML =
+      '<div style="min-width: 0;">' +
+        '<label>Variable name</label>' +
+        '<input type="text" class="var-name" placeholder="mednet_ai_url" value="' + (defaults.varName || '') + '" />' +
+      '</div>' +
+      '<div style="min-width: 0;">' +
+        '<label>Full URL or path</label>' +
+        '<input type="text" class="link-url" placeholder="https://www.themednet.org/v2/ai?..." value="' + (defaults.linkUrl || '') + '" />' +
+        '<p class="preview"></p>' +
+      '</div>' +
+      '<button type="button" class="remove-row" aria-label="Remove row">' +
+        '<svg class="icon" viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg>' +
+      '</button>';
+
+    const varInput = row.querySelector('.var-name');
+    const urlInput = row.querySelector('.link-url');
+    const preview = row.querySelector('.preview');
+
+    function updatePreview() {
+      const raw = urlInput.value.trim();
+      if (!raw) { preview.textContent = ''; return; }
+      const stripped = stripDomain(raw);
+      if (stripped && stripped !== raw) {
+        preview.textContent = '→ ' + stripped;
+      } else {
+        preview.textContent = '';
+      }
+    }
+
+    varInput.addEventListener('input', render);
+    urlInput.addEventListener('input', function() {
+      updatePreview();
+      render();
+    });
+    row.querySelector('.remove-row').addEventListener('click', function() {
+      row.remove();
+      if (container.children.length === 0) makeRow();
+      render();
+    });
+
+    container.appendChild(row);
+    updatePreview();
+    return row;
+  }
+
+  function render() {
+    const rows = Array.from(container.querySelectorAll('.link-row')).map(function(r) {
+      return {
+        varName: slugify(r.querySelector('.var-name').value),
+        linkPath: stripDomain(r.querySelector('.link-url').value)
+      };
+    }).filter(function(r) { return r.varName && r.linkPath; });
+
+    if (rows.length === 0) {
+      output.textContent = '(fill in at least one variable name + URL above)';
+      output.classList.add('empty');
+      summary.innerHTML = '';
+      return;
+    }
+
+    output.classList.remove('empty');
+    const blocks = rows.map(function(r) {
+      return '{% assign redirect_path = "' + r.linkPath + '" %}\n' +
+             '{{content_blocks.${generate_magic_url}}}\n' +
+             '{% assign ' + r.varName + ' = magic_url %}';
+    });
+    output.textContent = blocks.join('\n\n');
+    summary.innerHTML = 'Reference in body: ' + rows.map(function(r) {
+      return '<code>{{' + r.varName + '}}</code>';
+    }).join(' &nbsp; ');
+  }
+
+  document.getElementById('add-row').addEventListener('click', function() {
+    makeRow();
+    render();
+  });
+
+  document.getElementById('copy-output').addEventListener('click', function() {
+    const text = output.textContent;
+    if (!text || text.startsWith('(')) return;
+    navigator.clipboard.writeText(text).then(function() {
+      const btn = document.getElementById('copy-output');
+      const label = document.getElementById('copy-label');
+      btn.classList.add('copied');
+      label.textContent = 'Copied';
+      setTimeout(function() {
+        btn.classList.remove('copied');
+        label.textContent = 'Copy';
+      }, 1500);
+    }).catch(function() {});
+  });
+
+  makeRow({ varName: 'mednet_ai_url', linkUrl: 'https://www.themednet.org/v2/ai?utm_medium=email&utm_source=mednet_ai_launch&utm_campaign=e7' });
+  render();
+})();
+</script>
+
+</body>
+</html>
